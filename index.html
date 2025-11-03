@@ -22,7 +22,6 @@
             position: relative;
         }
         
-        /* Prevent right-click and screenshot overlay */
         body::before {
             content: '';
             position: fixed;
@@ -89,7 +88,6 @@
             100% { transform: scale(1); opacity: 1; }
         }
         
-        /* Elegant shimmer effect */
         .slide::before {
             content: '';
             position: absolute;
@@ -175,7 +173,6 @@
             50% { opacity: 1; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
         }
         
-        /* Prevent screenshot blur effect */
         .screenshot-overlay {
             position: fixed;
             top: 0;
@@ -198,7 +195,6 @@
             50% { background: rgba(255, 0, 0, 0.3); }
         }
         
-        /* Beautiful end screen */
         .end-screen {
             display: none;
             position: fixed;
@@ -264,9 +260,27 @@
             margin-top: 30px;
             font-style: italic;
         }
+        
+        .loading-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+    <div class="loading-screen" id="loadingScreen">
+        <div style="text-align: center;">
+            <div style="font-size: 60px; margin-bottom: 20px;">⏳</div>
+            <div>Loading exclusive content...</div>
+        </div>
+    </div>
+
     <div class="watermark">GRACE CHARIS EXCLUSIVE</div>
     <div class="screenshot-overlay"></div>
     
@@ -278,11 +292,11 @@
         ✨ For Your Eyes Only - Private Content ✨
     </div>
     
-    <div class="timer" id="timer">
+    <div class="timer" id="timer" style="display: none;">
         ⏱️ Viewing Time: <span id="countdown">60</span>s
     </div>
     
-    <div class="ad-container" id="adContainer">
+    <div class="ad-container" id="adContainer" style="display: none;">
         <!-- Slides will be generated here -->
     </div>
     
@@ -295,47 +309,85 @@
         </div>
     </div>
 
-    <script>
-        // Grace Charis exclusive photos
-        const images = [
-            'https://i.postimg.cc/0Nww2Wpy/IMG-8986.jpg',
-            'https://i.postimg.cc/1zqq5CpV/IMG-8982.jpg'
-        ];
-        
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5Z_YbfJs1LTZVqq8IDLUWakGmj5b96UE",
+            authDomain: "grace-fan-cards.firebaseapp.com",
+            databaseURL: "https://grace-fan-cards-default-rtdb.firebaseio.com",
+            projectId: "grace-fan-cards",
+            storageBucket: "grace-fan-cards.firebasestorage.app",
+            messagingSenderId: "982523155231",
+            appId: "1:982523155231:web:472627226297f11ebb162a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
         let currentSlide = 0;
-        let totalTime = 60; // 1 MINUTE (60 seconds) total viewing time
+        let totalTime = 60;
         let timeRemaining = totalTime;
-        
-        // Create slides
-        const container = document.getElementById('adContainer');
-        images.forEach((imgUrl, index) => {
-            const slide = document.createElement('div');
-            slide.className = 'slide' + (index === 0 ? ' active' : '');
-            slide.innerHTML = `<img src="${imgUrl}" class="slide-image" draggable="false" alt="Grace Charis Exclusive">`;
-            container.appendChild(slide);
-        });
-        
-        const slides = document.querySelectorAll('.slide');
-        
-        // Auto-rotate slides every 5 seconds with smooth transition
-        setInterval(() => {
-            slides[currentSlide].classList.remove('active');
-            currentSlide = (currentSlide + 1) % slides.length;
-            slides[currentSlide].classList.add('active');
-        }, 5000);
-        
-        // Countdown timer
-        const countdownEl = document.getElementById('countdown');
-        const timerInterval = setInterval(() => {
-            timeRemaining--;
-            countdownEl.textContent = timeRemaining;
+        let slideInterval;
+        let timerInterval;
+
+        // Load photos from Firebase
+        const photosRef = ref(database, 'exclusivePhotos');
+        onValue(photosRef, (snapshot) => {
+            const photos = snapshot.val();
             
-            if (timeRemaining <= 0) {
-                clearInterval(timerInterval);
-                // Show beautiful end screen
-                document.getElementById('endScreen').classList.add('show');
+            if (!photos || Object.keys(photos).length === 0) {
+                // No photos available
+                document.getElementById('loadingScreen').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 60px; margin-bottom: 20px;">📸</div>
+                        <div style="font-size: 24px; margin-bottom: 15px;">No Content Available</div>
+                        <div style="font-size: 16px; opacity: 0.7;">Check back later for exclusive content!</div>
+                    </div>
+                `;
+                return;
             }
-        }, 1000);
+
+            // Get image URLs
+            const images = Object.values(photos).map(p => p.url);
+            
+            // Hide loading, show content
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('adContainer').style.display = 'block';
+            document.getElementById('timer').style.display = 'block';
+            
+            // Create slides
+            const container = document.getElementById('adContainer');
+            images.forEach((imgUrl, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'slide' + (index === 0 ? ' active' : '');
+                slide.innerHTML = `<img src="${imgUrl}" class="slide-image" draggable="false" alt="Grace Charis Exclusive">`;
+                container.appendChild(slide);
+            });
+            
+            const slides = document.querySelectorAll('.slide');
+            
+            // Auto-rotate slides every 5 seconds
+            slideInterval = setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 5000);
+            
+            // Countdown timer
+            const countdownEl = document.getElementById('countdown');
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                countdownEl.textContent = timeRemaining;
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    clearInterval(slideInterval);
+                    document.getElementById('endScreen').classList.add('show');
+                }
+            }, 1000);
+        });
         
         // PROTECTION: Disable right-click
         document.addEventListener('contextmenu', (e) => {
@@ -343,22 +395,20 @@
             return false;
         });
         
-        // PROTECTION: Disable common keyboard shortcuts
+        // PROTECTION: Disable keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            // Prevent F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S
-            if (e.keyCode === 123 || // F12
-                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || // Ctrl+Shift+I/J
-                (e.ctrlKey && e.keyCode === 85) || // Ctrl+U
-                (e.ctrlKey && e.keyCode === 83)) { // Ctrl+S
+            if (e.keyCode === 123 ||
+                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
+                (e.ctrlKey && e.keyCode === 85) ||
+                (e.ctrlKey && e.keyCode === 83)) {
                 e.preventDefault();
                 return false;
             }
             
-            // Detect screenshot attempts (Print Screen, Windows+Shift+S, etc.)
-            if (e.keyCode === 44 || // Print Screen
-                (e.metaKey && e.shiftKey && e.keyCode === 83) || // Mac screenshot
-                (e.metaKey && e.shiftKey && e.keyCode === 52) || // Mac screenshot area
-                (e.metaKey && e.shiftKey && e.keyCode === 51)) { // Mac screenshot
+            if (e.keyCode === 44 ||
+                (e.metaKey && e.shiftKey && e.keyCode === 83) ||
+                (e.metaKey && e.shiftKey && e.keyCode === 52) ||
+                (e.metaKey && e.shiftKey && e.keyCode === 51)) {
                 document.body.classList.add('screenshot-detected');
                 setTimeout(() => {
                     document.body.classList.remove('screenshot-detected');
@@ -366,17 +416,10 @@
             }
         });
         
-        // PROTECTION: Disable drag and drop
+        // PROTECTION: Disable drag
         document.addEventListener('dragstart', (e) => {
             e.preventDefault();
             return false;
-        });
-        
-        // PROTECTION: Detect if user leaves tab (might be screenshotting)
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                console.log('User left tab - possible screenshot attempt');
-            }
         });
         
         // PROTECTION: Prevent long-press on mobile
@@ -394,12 +437,6 @@
         
         // PROTECTION: Disable text selection
         document.onselectstart = () => false;
-        
-        // Preload images for smooth transition
-        images.forEach(src => {
-            const img = new Image();
-            img.src = src;
-        });
     </script>
 </body>
 </html>
