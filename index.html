@@ -265,15 +265,49 @@
         margin-top: 30px;
         font-style: italic;
     }
+    
+    /* Music Toggle Button */
+    .music-toggle {
+        position: fixed;
+        top: 40px;
+        right: 40px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: gentlePulse 3s infinite ease-in-out;
+    }
+    
+    .music-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 15px 40px rgba(255, 215, 0, 0.6);
+    }
+    
+    .music-toggle:active {
+        transform: scale(0.95);
+    }
+    
+    .music-toggle.muted {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        opacity: 0.6;
+    }
 </style>
-```
 
 </head>
 <body>
     <div class="watermark">GRACE CHARIS EXCLUSIVE</div>
     <div class="screenshot-overlay"></div>
 
-```
+
 <div class="vip-badge">
     👑 VIP EXCLUSIVE CONTENT 👑
 </div>
@@ -299,6 +333,16 @@
     </div>
 </div>
 
+<!-- Background Music -->
+<audio id="bgMusic" loop>
+    <source src="https://cdn.pixabay.com/audio/2024/03/18/audio_3b1e1a5dd3.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Music Control Button -->
+<button class="music-toggle" id="musicToggle" onclick="toggleMusic()">
+    🔊
+</button>
+
 <script>
     // Grace Charis exclusive photos
     const images = [
@@ -309,6 +353,37 @@
     let currentSlide = 0;
     let totalTime = 45; // 45 seconds total viewing time
     let timeRemaining = totalTime;
+    let musicPlaying = false;
+    
+    const audio = document.getElementById('bgMusic');
+    const musicToggle = document.getElementById('musicToggle');
+    
+    // Music control function
+    window.toggleMusic = function() {
+        if (musicPlaying) {
+            audio.pause();
+            musicToggle.textContent = '🔇';
+            musicToggle.classList.add('muted');
+            musicPlaying = false;
+        } else {
+            audio.play().catch(err => console.log('Audio autoplay prevented'));
+            musicToggle.textContent = '🔊';
+            musicToggle.classList.remove('muted');
+            musicPlaying = true;
+        }
+    };
+    
+    // Try to autoplay music on page load (some browsers block this)
+    window.addEventListener('load', () => {
+        audio.play().then(() => {
+            musicPlaying = true;
+            musicToggle.textContent = '🔊';
+        }).catch(() => {
+            // Autoplay blocked, user needs to click button
+            musicToggle.textContent = '🔇';
+            musicToggle.classList.add('muted');
+        });
+    });
     
     // Create slides
     const container = document.getElementById('adContainer');
@@ -336,6 +411,15 @@
         
         if (timeRemaining <= 0) {
             clearInterval(timerInterval);
+            // Fade out music when ending
+            let fadeOut = setInterval(() => {
+                if (audio.volume > 0.1) {
+                    audio.volume -= 0.1;
+                } else {
+                    audio.pause();
+                    clearInterval(fadeOut);
+                }
+            }, 100);
             // Show beautiful end screen
             document.getElementById('endScreen').classList.add('show');
         }
