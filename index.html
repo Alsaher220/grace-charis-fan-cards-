@@ -1,438 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grace Charis - Exclusive Content</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-
-        body {
-            background: #000;
-            overflow: hidden;
-            font-family: 'Arial', sans-serif;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            z-index: 999;
-            pointer-events: none;
-        }
-
-        .watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 100px;
-            color: rgba(255, 255, 255, 0.02);
-            font-weight: bold;
-            z-index: 998;
-            pointer-events: none;
-            white-space: nowrap;
-            letter-spacing: 30px;
-        }
-
-        .ad-container {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-        }
-
-        .slide {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 2s ease-in-out;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .slide.active {
-            opacity: 1;
-            z-index: 2;
-        }
-
-        .slide-image {
-            max-width: 85%;
-            max-height: 85%;
-            object-fit: contain;
-            border-radius: 20px;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.7);
-            pointer-events: none;
-            -webkit-touch-callout: none;
-            animation: zoomIn 2s ease-out;
-        }
-
-        @keyframes zoomIn {
-            0% { transform: scale(0.9); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .slide::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, 
-                transparent 30%, 
-                rgba(255, 215, 0, 0.05) 50%, 
-                transparent 70%);
-            animation: elegantShimmer 4s infinite;
-            pointer-events: none;
-        }
-
-        @keyframes elegantShimmer {
-            0% { transform: translateX(-100%) translateY(-100%); }
-            100% { transform: translateX(100%) translateY(100%); }
-        }
-
-        .vip-badge {
-            position: fixed;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            color: white;
-            padding: 18px 50px;
-            border-radius: 50px;
-            font-size: 26px;
-            font-weight: bold;
-            z-index: 100;
-            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.5);
-            animation: gentlePulse 3s infinite ease-in-out;
-            pointer-events: none;
-            letter-spacing: 2px;
-        }
-
-        @keyframes gentlePulse {
-            0%, 100% { transform: translateX(-50%) scale(1); }
-            50% { transform: translateX(-50%) scale(1.03); }
-        }
-
-        .timer {
-            position: fixed;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85);
-            color: white;
-            padding: 22px 50px;
-            border-radius: 50px;
-            font-size: 22px;
-            font-weight: bold;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            pointer-events: none;
-            border: 2px solid rgba(255, 215, 0, 0.3);
-        }
-
-        .timer span {
-            color: #FFD700;
-            font-size: 28px;
-        }
-
-        .exclusive-text {
-            position: fixed;
-            bottom: 140px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 20px;
-            text-align: center;
-            z-index: 100;
-            text-shadow: 2px 2px 15px rgba(0,0,0,0.9);
-            pointer-events: none;
-            animation: softGlow 4s infinite ease-in-out;
-            letter-spacing: 1px;
-        }
-
-        @keyframes softGlow {
-            0%, 100% { opacity: 0.7; text-shadow: 2px 2px 15px rgba(0,0,0,0.9); }
-            50% { opacity: 1; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
-        }
-
-        .screenshot-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            z-index: 997;
-            pointer-events: none;
-            display: none;
-        }
-
-        body.screenshot-detected .screenshot-overlay {
-            display: block;
-            animation: flashWarning 0.3s;
-        }
-
-        @keyframes flashWarning {
-            0%, 100% { background: transparent; }
-            50% { background: rgba(255, 0, 0, 0.3); }
-        }
-
-        .end-screen {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 1s ease-in;
-        }
-
-        .end-screen.show {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .end-content {
-            text-align: center;
-            color: white;
-            animation: slideUp 1s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .end-icon {
-            font-size: 100px;
-            margin-bottom: 30px;
-            animation: bounceIn 1s ease-out;
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        .end-title {
-            font-size: 52px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-        }
-
-        .end-subtitle {
-            font-size: 26px;
-            opacity: 0.9;
-            margin-bottom: 15px;
-        }
-
-        .end-message {
-            font-size: 20px;
-            opacity: 0.7;
-            margin-top: 30px;
-            font-style: italic;
-        }
-
-        .music-toggle {
-            position: fixed;
-            top: 40px;
-            right: 40px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            z-index: 1000;
-            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: gentlePulse 3s infinite ease-in-out;
-        }
-
-        .music-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.6);
-        }
-
-        .music-toggle:active {
-            transform: scale(0.95);
-        }
-
-        .music-toggle.muted {
-            background: linear-gradient(135deg, #6c757d, #495057);
-            opacity: 0.6;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nova Experience VIP Access</title>
+  <style>
+    body {
+      background: radial-gradient(circle at center, #000, #0a0a0a);
+      color: white;
+      font-family: "Poppins", sans-serif;
+      overflow: hidden;
+      text-align: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .centered {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .shimmer {
+      background: linear-gradient(90deg, #fff, #f0f0f0, #fff);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 3s linear infinite;
+      font-size: 2.2em;
+      font-weight: 700;
+    }
+    @keyframes shimmer {
+      to {
+        background-position: 200% center;
+      }
+    }
+    .timer {
+      font-size: 1.4em;
+      margin-top: 1em;
+      font-weight: 500;
+    }
+    .vip {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 1.5em;
+      background: linear-gradient(45deg, gold, orange);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+    #musicToggle {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      padding: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    #musicToggle:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    #musicToggle.muted {
+      opacity: 0.5;
+    }
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 1.5em;
+      z-index: 999;
+    }
+  </style>
 </head>
 <body>
-    <div class="watermark">GRACE CHARIS EXCLUSIVE</div>
-    <div class="screenshot-overlay"></div>
+  <div class="vip">VIP 🔱</div>
+  <div class="centered">
+    <div class="shimmer">Welcome to Nova Experience</div>
+    <div class="timer" id="countdown"></div>
+  </div>
 
-    <div class="vip-badge">👑 VIP EXCLUSIVE CONTENT 👑</div>
-    <div class="exclusive-text">✨ For Your Eyes Only - Private Content ✨</div>
-    <div class="timer" id="timer">⏱️ Viewing Time: <span id="countdown">60</span>s</div>
+  <div id="overlay">🎵 Tap to Start VIP Music 🎵</div>
 
-    <div class="ad-container" id="adContainer"></div>
+  <audio id="bgMusic" loop playsinline>
+    <source src="https://cdn.pixabay.com/audio/2024/03/18/audio_3b1e1a5dd3.mp3" type="audio/mpeg">
+  </audio>
 
-    <div class="end-screen" id="endScreen">
-        <div class="end-content">
-            <div class="end-icon">✨</div>
-            <div class="end-title">Thank You!</div>
-            <div class="end-subtitle">This exclusive content has ended.</div>
-            <div class="end-message">Grace Charis VIP Experience</div>
-        </div>
-    </div>
+  <div id="musicToggle">🔊</div>
 
-    <!-- Background Music -->
-    <audio id="bgMusic" loop muted playsinline>
-        <source src="https://cdn.pixabay.com/audio/2024/03/18/audio_3b1e1a5dd3.mp3" type="audio/mpeg">
-    </audio>
+  <script>
+    const audio = document.getElementById('bgMusic');
+    const musicToggle = document.getElementById('musicToggle');
+    const overlay = document.getElementById('overlay');
+    let musicPlaying = false;
 
-    <!-- Music Control Button -->
-    <button class="music-toggle" id="musicToggle" onclick="toggleMusic()">🔊</button>
+    // Start background music
+    function startMusic() {
+      audio.volume = 1.0;
+      audio.play().then(() => {
+        musicPlaying = true;
+        musicToggle.textContent = '🔊';
+        musicToggle.classList.remove('muted');
+      }).catch(() => {
+        overlay.style.display = 'flex';
+        overlay.addEventListener('click', () => {
+          overlay.style.display = 'none';
+          audio.play();
+          musicPlaying = true;
+          musicToggle.textContent = '🔊';
+          musicToggle.classList.remove('muted');
+        }, { once: true });
+      });
+    }
 
-    <script>
-        const images = [
-            'https://i.postimg.cc/0Nww2Wpy/IMG-8986.jpg',
-            'https://i.postimg.cc/1zqq5CpV/IMG-8982.jpg'
-        ];
+    // Countdown timer (you can customize the date/time)
+    const targetDate = new Date(Date.now() + 3600 * 1000);
+    const countdown = document.getElementById('countdown');
+    setInterval(() => {
+      const diff = targetDate - new Date();
+      if (diff <= 0) {
+        countdown.textContent = "Event Live Now 🎉";
+        return;
+      }
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      countdown.textContent = `${h}h ${m}m ${s}s`;
+    }, 1000);
 
-        let currentSlide = 0;
-        let totalTime = 60;
-        let timeRemaining = totalTime;
-        let musicPlaying = false;
+    // Handle music toggle button
+    musicToggle.addEventListener('click', () => {
+      if (musicPlaying) {
+        audio.pause();
+        musicPlaying = false;
+        musicToggle.textContent = '🔇';
+        musicToggle.classList.add('muted');
+      } else {
+        audio.play();
+        musicPlaying = true;
+        musicToggle.textContent = '🔊';
+        musicToggle.classList.remove('muted');
+      }
+    });
 
-        const audio = document.getElementById('bgMusic');
-        const musicToggle = document.getElementById('musicToggle');
-        audio.volume = 0.7;
-
-        window.toggleMusic = function() {
-            if (musicPlaying) {
-                audio.pause();
-                musicToggle.textContent = '🔇';
-                musicToggle.classList.add('muted');
-                musicPlaying = false;
-            } else {
-                audio.play().catch(err => console.log('Audio autoplay prevented'));
-                musicToggle.textContent = '🔊';
-                musicToggle.classList.remove('muted');
-                musicPlaying = true;
-            }
-        };
-
-        function startMusic() {
-            audio.muted = true;
-            audio.play().then(() => {
-                setTimeout(() => {
-                    audio.muted = false;
-                    audio.volume = 0.7;
-                    musicPlaying = true;
-                    musicToggle.textContent = '🔊';
-                    musicToggle.classList.remove('muted');
-                }, 500);
-            }).catch(() => {
-                const enableAudio = () => {
-                    audio.muted = false;
-                    audio.volume = 0.7;
-                    audio.play();
-                    musicPlaying = true;
-                    musicToggle.textContent = '🔊';
-                    musicToggle.classList.remove('muted');
-                    document.body.removeEventListener('click', enableAudio);
-                    document.body.removeEventListener('touchstart', enableAudio);
-                };
-                document.body.addEventListener('click', enableAudio, { once: true });
-                document.body.addEventListener('touchstart', enableAudio, { once: true });
-            });
-        }
-
-        window.addEventListener('DOMContentLoaded', startMusic);
-        window.addEventListener('load', startMusic);
-        setTimeout(startMusic, 100);
-
-        const container = document.getElementById('adContainer');
-        images.forEach((imgUrl, index) => {
-            const slide = document.createElement('div');
-            slide.className = 'slide' + (index === 0 ? ' active' : '');
-            slide.innerHTML = `<img src="${imgUrl}" class="slide-image" draggable="false" alt="Grace Charis Exclusive">`;
-            container.appendChild(slide);
-        });
-
-        const slides = document.querySelectorAll('.slide');
-        setInterval(() => {
-            slides[currentSlide].classList.remove('active');
-            currentSlide = (currentSlide + 1) % slides.length;
-            slides[currentSlide].classList.add('active');
-        }, 5000);
-
-        const countdownEl = document.getElementById('countdown');
-        const timerInterval = setInterval(() => {
-            timeRemaining--;
-            countdownEl.textContent = timeRemaining;
-
-            if (timeRemaining <= 0) {
-                clearInterval(timerInterval);
-                let fadeOut = setInterval(() => {
-                    if (audio.volume > 0.1) {
-                        audio.volume -= 0.1;
-                    } else {
-                        audio.pause();
-                        clearInterval(fadeOut);
-                    }
-                }, 100);
-                document.getElementById('endScreen').classList.add('show');
-            }
-        }, 1000);
-
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('keydown', e => {
-            if (e.keyCode === 123 || 
-                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
-                (e.ctrlKey && e.keyCode === 85) ||
-                (e.ctrlKey && e.keyCode === 83)) {
-                e.preventDefault();
-            }
-        });
-
-        document.addEventListener('dragstart', e => e.preventDefault());
-        document.onselectstart = () => false;
-
-        images.forEach(src => {
-            const img = new Image();
-            img.src = src;
-        });
-    </script>
+    // Start automatically on supported devices
+    window.addEventListener('load', startMusic);
+  </script>
 </body>
 </html>
