@@ -15,7 +15,6 @@
             -ms-user-select: none;
         }
 
-
     body {
         background: #000;
         overflow: hidden;
@@ -301,13 +300,14 @@
         opacity: 0.6;
     }
 </style>
+```
 
 </head>
 <body>
     <div class="watermark">GRACE CHARIS EXCLUSIVE</div>
     <div class="screenshot-overlay"></div>
 
-
+```
 <div class="vip-badge">
     👑 VIP EXCLUSIVE CONTENT 👑
 </div>
@@ -317,7 +317,7 @@
 </div>
 
 <div class="timer" id="timer">
-    ⏱️ Viewing Time: <span id="countdown">45</span>s
+    ⏱️ Viewing Time: <span id="countdown">60</span>s
 </div>
 
 <div class="ad-container" id="adContainer">
@@ -351,12 +351,15 @@
     ];
     
     let currentSlide = 0;
-    let totalTime = 45; // 45 seconds total viewing time
+    let totalTime = 60; // 1 MINUTE (60 seconds) total viewing time
     let timeRemaining = totalTime;
     let musicPlaying = false;
     
     const audio = document.getElementById('bgMusic');
     const musicToggle = document.getElementById('musicToggle');
+    
+    // Set initial volume
+    audio.volume = 0.7;
     
     // Music control function
     window.toggleMusic = function() {
@@ -373,17 +376,38 @@
         }
     };
     
-    // Try to autoplay music on page load (some browsers block this)
-    window.addEventListener('load', () => {
+    // FORCE MUSIC TO START - Multiple methods to ensure it plays
+    function startMusic() {
         audio.play().then(() => {
             musicPlaying = true;
             musicToggle.textContent = '🔊';
+            musicToggle.classList.remove('muted');
         }).catch(() => {
-            // Autoplay blocked, user needs to click button
-            musicToggle.textContent = '🔇';
-            musicToggle.classList.add('muted');
+            // If autoplay blocked, try again on first user interaction
+            document.body.addEventListener('click', function playOnce() {
+                audio.play();
+                musicPlaying = true;
+                musicToggle.textContent = '🔊';
+                musicToggle.classList.remove('muted');
+                document.body.removeEventListener('click', playOnce);
+            }, { once: true });
+            
+            document.body.addEventListener('touchstart', function playOnce() {
+                audio.play();
+                musicPlaying = true;
+                musicToggle.textContent = '🔊';
+                musicToggle.classList.remove('muted');
+                document.body.removeEventListener('touchstart', playOnce);
+            }, { once: true });
         });
-    });
+    }
+    
+    // Start music immediately when page loads
+    window.addEventListener('DOMContentLoaded', startMusic);
+    window.addEventListener('load', startMusic);
+    
+    // Also try to start music after a tiny delay
+    setTimeout(startMusic, 100);
     
     // Create slides
     const container = document.getElementById('adContainer');
